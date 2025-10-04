@@ -1,40 +1,75 @@
-import Link from "next/link";
+import { Button } from "react-bootstrap";
+
 export default function Profile() {
   return (
-    <div id="wd-profile-screen">
-      <h3>Profile</h3>
-      <input
-        defaultValue="alice"
-        placeholder="username"
-        className="wd-username"
-      />
-      <br />
-      <input
-        defaultValue="123"
-        placeholder="password"
-        type="password"
-        className="wd-password"
-      />
-      <br />
-      <input defaultValue="Alice" placeholder="First Name" id="wd-firstname" />
-      <br />
-      <input
-        defaultValue="Wonderland"
-        placeholder="Last Name"
-        id="wd-lastname"
-      />
-      <br />
-      <input defaultValue="2000-01-01" type="date" id="wd-dob" />
-      <br />
-      <input defaultValue="alice@wonderland" type="email" id="wd-email" />
-      <br />
-      <select defaultValue="FACULTY" id="wd-role">
-        <option value="USER">User</option> <option value="ADMIN">Admin</option>
-        <option value="FACULTY">Faculty</option>{" "}
-        <option value="STUDENT">Student</option>
-      </select>
-      <br />
-      <Link href="Signin"> Sign out </Link>
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+      <div style={{ width: "500px" }}>
+        <h1 className="mb-4">Profile</h1>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            defaultValue="alice"
+            placeholder="username"
+            id="wd-username"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="password"
+            className="form-control"
+            defaultValue="123"
+            placeholder="password"
+            id="wd-password"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            defaultValue="Alice"
+            placeholder="First Name"
+            id="wd-firstname"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            defaultValue="Wonderland"
+            placeholder="Last Name"
+            id="wd-lastname"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="date"
+            className="form-control"
+            defaultValue="2000-01-01"
+            id="wd-dob"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="email"
+            className="form-control"
+            defaultValue="alice@wonderland.com"
+            placeholder="email"
+            id="wd-email"
+          />
+        </div>
+        <div className="mb-3">
+          <select className="form-select" id="wd-role" defaultValue="USER">
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+            <option value="FACULTY">Faculty</option>
+            <option value="STUDENT">Student</option>
+          </select>
+        </div>
+        <Button variant="danger" className="w-100" id="wd-signout-btn">
+          Signout
+        </Button>
+      </div>
     </div>
   );
 }
