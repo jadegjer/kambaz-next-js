@@ -20,6 +20,7 @@ import BootstrapForms from "./BootstrapForms";
 import BootstrapNavigation from "./BootstrapNavigation";
 
 
+
 export default function Lab2() {
   return (
     <Container>

@@ -9,6 +9,7 @@ import { ListGroup, ListGroupItem } from "react-bootstrap";
 
 export default function KambazNavigation() {
   const pathname = usePathname();
+  
 
   const links = [
     { href: "/Account", icon: <FaRegCircleUser className="fs-1" />, label: "Account", id: "wd-account-link" },

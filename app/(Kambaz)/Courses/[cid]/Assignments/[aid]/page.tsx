@@ -1,7 +1,17 @@
+"use client";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import * as db from "../../../../Database";
 import { Button } from "react-bootstrap";
 
 export default function AssignmentEditor() {
+  const { cid, aid } = useParams();
+  const assignment = db.assignments.find((a: any) => a._id === aid);
+
+  if (!assignment) {
+    return <div className="p-4">Assignment not found</div>;
+  }
+
   return (
     <div id="wd-assignments-editor" className="p-4">
       <div className="mb-3">
@@ -12,7 +22,7 @@ export default function AssignmentEditor() {
           type="text"
           className="form-control"
           id="wd-name"
-          defaultValue="A1 - ENV + HTML"
+          defaultValue={assignment.title}
         />
       </div>
 
@@ -227,10 +237,10 @@ The Kambaz application should include a link to navigate back to the landing pag
       <hr />
 
       <div className="d-flex justify-content-end gap-2">
-        <Link href="/Courses/1234/Assignments">
+        <Link href={`/Courses/${cid}/Assignments`}>
           <Button variant="secondary">Cancel</Button>
         </Link>
-        <Link href="/Courses/1234/Assignments">
+        <Link href={`/Courses/${cid}/Assignments`}>
           <Button variant="danger">Save</Button>
         </Link>
       </div>

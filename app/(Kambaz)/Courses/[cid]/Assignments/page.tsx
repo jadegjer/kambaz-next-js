@@ -1,4 +1,7 @@
+"use client";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import * as db from "../../../Database";
 import { FaPlus } from "react-icons/fa6";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { BsGripVertical } from "react-icons/bs";
@@ -7,6 +10,9 @@ import { FaCaretDown } from "react-icons/fa";
 import { Button } from "react-bootstrap";
 
 export default function Assignments() {
+  const { cid } = useParams();
+  const assignments = db.assignments;
+
   return (
     <div id="wd-assignments" className="p-4">
       {/* Search and Buttons Row */}
@@ -55,74 +61,35 @@ export default function Assignments() {
           </div>
         </li>
 
-        {/* Assignment 1 */}
-        <li className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-start">
-              <BsGripVertical className="me-2 fs-4 mt-1" />
-              <div>
-                <Link
-                  href="/Courses/1234/Assignments/123"
-                  className="wd-assignment-link text-decoration-none text-dark fw-bold"
-                >
-                  A1 - ENV + HTML
-                </Link>
-                <div className="text-muted small mt-1">
-                  <span className="text-danger">Multiple Modules</span> |{" "}
-                  <strong>Not available until</strong> May 6 at 12:00am |{" "}
-                  <strong>Due</strong> May 13 at 11:59pm | 100 pts
+        {/* Dynamic Assignment Items */}
+        {assignments
+          .filter((assignment: any) => assignment.course === cid)
+          .map((assignment: any) => (
+            <li 
+              key={assignment._id}
+              className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5"
+            >
+              <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex align-items-start">
+                  <BsGripVertical className="me-2 fs-4 mt-1" />
+                  <div>
+                    <Link
+                      href={`/Courses/${cid}/Assignments/${assignment._id}`}
+                      className="wd-assignment-link text-decoration-none text-dark fw-bold"
+                    >
+                      {assignment.title}
+                    </Link>
+                    <div className="text-muted small mt-1">
+                      <span className="text-danger">Multiple Modules</span> |{" "}
+                      <strong>Not available until</strong> May 6 at 12:00am |{" "}
+                      <strong>Due</strong> May 13 at 11:59pm | 100 pts
+                    </div>
+                  </div>
                 </div>
+                <IoEllipsisVertical className="fs-4" />
               </div>
-            </div>
-            <IoEllipsisVertical className="fs-4" />
-          </div>
-        </li>
-
-        {/* Assignment 2 */}
-        <li className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-start">
-              <BsGripVertical className="me-2 fs-4 mt-1" />
-              <div>
-                <Link
-                  href="/Courses/1234/Assignments/124"
-                  className="wd-assignment-link text-decoration-none text-dark fw-bold"
-                >
-                  A2 - CSS + BOOTSTRAP
-                </Link>
-                <div className="text-muted small mt-1">
-                  <span className="text-danger">Multiple Modules</span> |{" "}
-                  <strong>Not available until</strong> May 13 at 12:00am |{" "}
-                  <strong>Due</strong> May 20 at 11:59pm | 100 pts
-                </div>
-              </div>
-            </div>
-            <IoEllipsisVertical className="fs-4" />
-          </div>
-        </li>
-
-        {/* Assignment 3 */}
-        <li className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-start">
-              <BsGripVertical className="me-2 fs-4 mt-1" />
-              <div>
-                <Link
-                  href="/Courses/1234/Assignments/125"
-                  className="wd-assignment-link text-decoration-none text-dark fw-bold"
-                >
-                  A3 - JAVASCRIPT + REACT
-                </Link>
-                <div className="text-muted small mt-1">
-                  <span className="text-danger">Multiple Modules</span> |{" "}
-                  <strong>Not available until</strong> May 20 at 12:00am |{" "}
-                  <strong>Due</strong> May 27 at 11:59pm | 100 pts
-                </div>
-              </div>
-            </div>
-            <IoEllipsisVertical className="fs-4" />
-          </div>
-        </li>
+            </li>
+          ))}
       </ul>
     </div>
   );
