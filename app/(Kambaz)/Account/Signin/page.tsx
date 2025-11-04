@@ -1,28 +1,52 @@
+"use client";
 import Link from "next/link";
-import { Button } from "react-bootstrap";
+import { redirect } from "next/dist/client/components/navigation";
+import { setCurrentUser } from "../reducer";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import * as db from "../../Database";
+import { FormControl, Button } from "react-bootstrap";
 
 export default function Signin() {
+  const [credentials, setCredentials] = useState<any>({});
+  const dispatch = useDispatch();
+  
+  const signin = () => {
+    const user = db.users.find(
+      (u: any) =>
+        u.username === credentials.username &&
+        u.password === credentials.password
+    );
+    if (!user) return;
+    dispatch(setCurrentUser(user));
+    redirect("/Dashboard");
+  };
+
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
       <div style={{ width: "400px" }}>
         <h1 className="mb-4">Signin</h1>
-        <div className="mb-3">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="username"
-            id="wd-username"
-          />
-        </div>
-        <div className="mb-3">
-          <input
-            type="password"
-            className="form-control"
-            placeholder="password"
-            id="wd-password"
-          />
-        </div>
-        <Button variant="primary" className="w-100 mb-2" id="wd-signin-btn">
+        <FormControl 
+          value={credentials.username || ""}
+          onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+          className="mb-3" 
+          placeholder="username" 
+          id="wd-username" 
+        />
+        <FormControl 
+          value={credentials.password || ""}
+          onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+          className="mb-3" 
+          placeholder="password" 
+          type="password" 
+          id="wd-password" 
+        />
+        <Button 
+          onClick={signin} 
+          variant="primary" 
+          className="w-100 mb-2" 
+          id="wd-signin-btn"
+        >
           Signin
         </Button>
         <Link

@@ -1,17 +1,31 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import * as db from "../../../Database";
-import { FaPlus } from "react-icons/fa6";
+import { useParams, useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../../store";
+import { deleteAssignment } from "./reducer";
+import { FaPlus, FaTrash } from "react-icons/fa6";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { BsGripVertical } from "react-icons/bs";
 import { IoEllipsisVertical } from "react-icons/io5";
-import { FaCaretDown } from "react-icons/fa";
+import { FaCaretDown, FaEdit } from "react-icons/fa";
 import { Button } from "react-bootstrap";
 
 export default function Assignments() {
   const { cid } = useParams();
-  const assignments = db.assignments;
+  const router = useRouter();
+  const dispatch = useDispatch();
+  
+  const { assignments } = useSelector((state: RootState) => state.assignmentsReducer);
+  const { currentUser } = useSelector((state: RootState) => state.accountReducer);
+
+  const handleDelete = (assignmentId: string) => {
+    if (window.confirm("Are you sure you want to remove this assignment?")) {
+      dispatch(deleteAssignment(assignmentId));
+    }
+  };
+
+  const isFaculty = (currentUser as any)?.role === "FACULTY";
 
   return (
     <div id="wd-assignments" className="p-4">
@@ -29,16 +43,22 @@ export default function Assignments() {
           />
         </div>
 
-        <div>
-          <Button variant="secondary" className="me-2" id="wd-add-assignment-group">
-            <FaPlus className="me-1" />
-            Group
-          </Button>
-          <Button variant="danger" id="wd-add-assignment">
-            <FaPlus className="me-1" />
-            Assignment
-          </Button>
-        </div>
+        {isFaculty && (
+          <div>
+            <Button variant="secondary" className="me-2" id="wd-add-assignment-group">
+              <FaPlus className="me-1" />
+              Group
+            </Button>
+            <Button 
+              variant="danger" 
+              id="wd-add-assignment"
+              onClick={() => router.push(`/Courses/${cid}/Assignments/new`)}
+            >
+              <FaPlus className="me-1" />
+              Assignment
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Assignments List */}
@@ -70,7 +90,7 @@ export default function Assignments() {
               className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5"
             >
               <div className="d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-start">
+                <div className="d-flex align-items-start flex-grow-1">
                   <BsGripVertical className="me-2 fs-4 mt-1" />
                   <div>
                     <Link
@@ -81,12 +101,28 @@ export default function Assignments() {
                     </Link>
                     <div className="text-muted small mt-1">
                       <span className="text-danger">Multiple Modules</span> |{" "}
-                      <strong>Not available until</strong> May 6 at 12:00am |{" "}
-                      <strong>Due</strong> May 13 at 11:59pm | 100 pts
+                      <strong>Not available until</strong> {assignment.availableFromDate || "May 6 at 12:00am"} |{" "}
+                      <strong>Due</strong> {assignment.dueDate || "May 13 at 11:59pm"} | {assignment.points || 100} pts
                     </div>
                   </div>
                 </div>
-                <IoEllipsisVertical className="fs-4" />
+                <div className="d-flex align-items-center">
+                  {isFaculty && (
+                    <>
+                      <FaEdit
+                        className="text-primary me-3"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => router.push(`/Courses/${cid}/Assignments/${assignment._id}`)}
+                      />
+                      <FaTrash
+                        className="text-danger me-3"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleDelete(assignment._id)}
+                      />
+                    </>
+                  )}
+                  <IoEllipsisVertical className="fs-4" />
+                </div>
               </div>
             </li>
           ))}

@@ -1,16 +1,50 @@
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import * as db from "../../../../Database";
+import { useParams, useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../../../store";
+import { addAssignment, updateAssignment } from "../reducer";
+import { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
-  const assignment = db.assignments.find((a: any) => a._id === aid);
+  const router = useRouter();
+  const dispatch = useDispatch();
+  
+  const { assignments } = useSelector((state: RootState) => state.assignmentsReducer);
+  
+  const isNew = aid === "new";
+  const existingAssignment = assignments.find((a: any) => a._id === aid);
+  
+  const [assignment, setAssignment] = useState<any>({
+    title: "",
+    description: "",
+    points: 100,
+    dueDate: "2024-05-13",
+    availableFromDate: "2024-05-06",
+    availableUntilDate: "2024-05-20",
+    course: cid,
+  });
 
-  if (!assignment) {
-    return <div className="p-4">Assignment not found</div>;
-  }
+  useEffect(() => {
+    if (!isNew && existingAssignment) {
+      setAssignment(existingAssignment);
+    }
+  }, [aid, existingAssignment, isNew]);
+
+  const handleSave = () => {
+    if (isNew) {
+      dispatch(addAssignment(assignment));
+    } else {
+      dispatch(updateAssignment(assignment));
+    }
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  const handleCancel = () => {
+    router.push(`/Courses/${cid}/Assignments`);
+  };
 
   return (
     <div id="wd-assignments-editor" className="p-4">
@@ -22,7 +56,8 @@ export default function AssignmentEditor() {
           type="text"
           className="form-control"
           id="wd-name"
-          defaultValue={assignment.title}
+          value={assignment.title}
+          onChange={(e) => setAssignment({ ...assignment, title: e.target.value })}
         />
       </div>
 
@@ -34,17 +69,8 @@ export default function AssignmentEditor() {
           className="form-control"
           id="wd-description"
           rows={10}
-          defaultValue={`The assignment is available online
-
-Submit a link to the landing page of your Web application running on Netlify.
-
-The landing page should include the following:
-- Your full name and section
-- Links to each of the lab assignments
-- Link to the Kambaz application
-- Links to all relevant source code repositories
-
-The Kambaz application should include a link to navigate back to the landing page.`}
+          value={assignment.description}
+          onChange={(e) => setAssignment({ ...assignment, description: e.target.value })}
         />
       </div>
 
@@ -59,7 +85,8 @@ The Kambaz application should include a link to navigate back to the landing pag
             type="number"
             className="form-control"
             id="wd-points"
-            defaultValue={100}
+            value={assignment.points}
+            onChange={(e) => setAssignment({ ...assignment, points: parseInt(e.target.value) })}
           />
         </div>
       </div>
@@ -201,7 +228,8 @@ The Kambaz application should include a link to navigate back to the landing pag
                 type="date"
                 className="form-control"
                 id="wd-due-date"
-                defaultValue="2024-05-13"
+                value={assignment.dueDate}
+                onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })}
               />
             </div>
 
@@ -214,7 +242,8 @@ The Kambaz application should include a link to navigate back to the landing pag
                   type="date"
                   className="form-control"
                   id="wd-available-from"
-                  defaultValue="2024-05-06"
+                  value={assignment.availableFromDate}
+                  onChange={(e) => setAssignment({ ...assignment, availableFromDate: e.target.value })}
                 />
               </div>
 
@@ -226,7 +255,8 @@ The Kambaz application should include a link to navigate back to the landing pag
                   type="date"
                   className="form-control"
                   id="wd-available-until"
-                  defaultValue="2024-05-20"
+                  value={assignment.availableUntilDate}
+                  onChange={(e) => setAssignment({ ...assignment, availableUntilDate: e.target.value })}
                 />
               </div>
             </div>
@@ -237,12 +267,12 @@ The Kambaz application should include a link to navigate back to the landing pag
       <hr />
 
       <div className="d-flex justify-content-end gap-2">
-        <Link href={`/Courses/${cid}/Assignments`}>
-          <Button variant="secondary">Cancel</Button>
-        </Link>
-        <Link href={`/Courses/${cid}/Assignments`}>
-          <Button variant="danger">Save</Button>
-        </Link>
+        <Button variant="secondary" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={handleSave}>
+          Save
+        </Button>
       </div>
     </div>
   );
