@@ -1,3 +1,4 @@
+"use client"
 import TodoForm from "./TodoForm";
 import TodoItem from "./TodoItem";
 import { useState } from "react";
