@@ -3,13 +3,15 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../../store";
-import { deleteAssignment } from "./reducer";
+import { setAssignments } from "./reducer";
 import { FaPlus, FaTrash } from "react-icons/fa6";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { BsGripVertical } from "react-icons/bs";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { FaCaretDown, FaEdit } from "react-icons/fa";
 import { Button } from "react-bootstrap";
+import { useEffect } from "react";
+import * as coursesClient from "../../client";
 
 export default function Assignments() {
   const { cid } = useParams();
@@ -19,9 +21,21 @@ export default function Assignments() {
   const { assignments } = useSelector((state: RootState) => state.assignmentsReducer);
   const { currentUser } = useSelector((state: RootState) => state.accountReducer);
 
-  const handleDelete = (assignmentId: string) => {
+  // Fetch assignments on component load
+  const fetchAssignments = async () => {
+    const assignments = await coursesClient.findAssignmentsForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  // Delete assignment
+  const handleDelete = async (assignmentId: string) => {
     if (window.confirm("Are you sure you want to remove this assignment?")) {
-      dispatch(deleteAssignment(assignmentId));
+      await coursesClient.deleteAssignment(assignmentId);
+      dispatch(setAssignments(assignments.filter((a: any) => a._id !== assignmentId)));
     }
   };
 
@@ -82,50 +96,48 @@ export default function Assignments() {
         </li>
 
         {/* Dynamic Assignment Items */}
-        {assignments
-          .filter((assignment: any) => assignment.course === cid)
-          .map((assignment: any) => (
-            <li 
-              key={assignment._id}
-              className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5"
-            >
-              <div className="d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-start flex-grow-1">
-                  <BsGripVertical className="me-2 fs-4 mt-1" />
-                  <div>
-                    <Link
-                      href={`/Courses/${cid}/Assignments/${assignment._id}`}
-                      className="wd-assignment-link text-decoration-none text-dark fw-bold"
-                    >
-                      {assignment.title}
-                    </Link>
-                    <div className="text-muted small mt-1">
-                      <span className="text-danger">Multiple Modules</span> |{" "}
-                      <strong>Not available until</strong> {assignment.availableFromDate || "May 6 at 12:00am"} |{" "}
-                      <strong>Due</strong> {assignment.dueDate || "May 13 at 11:59pm"} | {assignment.points || 100} pts
-                    </div>
+        {assignments.map((assignment: any) => (
+          <li 
+            key={assignment._id}
+            className="wd-assignment-list-item list-group-item p-3 border-start border-success border-5"
+          >
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex align-items-start flex-grow-1">
+                <BsGripVertical className="me-2 fs-4 mt-1" />
+                <div>
+                  <Link
+                    href={`/Courses/${cid}/Assignments/${assignment._id}`}
+                    className="wd-assignment-link text-decoration-none text-dark fw-bold"
+                  >
+                    {assignment.title}
+                  </Link>
+                  <div className="text-muted small mt-1">
+                    <span className="text-danger">Multiple Modules</span> |{" "}
+                    <strong>Not available until</strong> {assignment.availableFromDate || "May 6 at 12:00am"} |{" "}
+                    <strong>Due</strong> {assignment.dueDate || "May 13 at 11:59pm"} | {assignment.points || 100} pts
                   </div>
                 </div>
-                <div className="d-flex align-items-center">
-                  {isFaculty && (
-                    <>
-                      <FaEdit
-                        className="text-primary me-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => router.push(`/Courses/${cid}/Assignments/${assignment._id}`)}
-                      />
-                      <FaTrash
-                        className="text-danger me-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDelete(assignment._id)}
-                      />
-                    </>
-                  )}
-                  <IoEllipsisVertical className="fs-4" />
-                </div>
               </div>
-            </li>
-          ))}
+              <div className="d-flex align-items-center">
+                {isFaculty && (
+                  <>
+                    <FaEdit
+                      className="text-primary me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => router.push(`/Courses/${cid}/Assignments/${assignment._id}`)}
+                    />
+                    <FaTrash
+                      className="text-danger me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleDelete(assignment._id)}
+                    />
+                  </>
+                )}
+                <IoEllipsisVertical className="fs-4" />
+              </div>
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );

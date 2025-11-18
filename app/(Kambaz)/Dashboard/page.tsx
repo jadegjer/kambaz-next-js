@@ -1,13 +1,12 @@
 "use client"
 import Link from "next/link";
-import { v4 as uuidv4 } from "uuid";
-import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewCourse, deleteCourse, updateCourse, setCourses } from "../Courses/reducer";
-import { enrollUser, unenrollUser } from "../Enrollments/reducer";
+import { setCourses } from "../Courses/reducer";
+import { setEnrollments } from "../Enrollments/reducer";
 import { RootState } from "../store";
 import { Row, Col, Card, Button, CardImg, CardTitle, CardBody, CardText, FormControl } from "react-bootstrap";
-import * as db from "../Database";
+import * as client from "../Courses/client";
 
 export default function Dashboard() {
   const { courses } = useSelector((state: RootState) => state.coursesReducer);
@@ -22,6 +21,34 @@ export default function Dashboard() {
   });
 
   const [showAllCourses, setShowAllCourses] = useState(false);
+  const [allCourses, setAllCourses] = useState<any[]>([]);
+
+  // Fetch enrolled courses on component load
+  const fetchCourses = async () => {
+    try {
+      const courses = await client.findMyCourses();
+      dispatch(setCourses(courses));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Fetch all courses for enrollment view
+  const fetchAllCourses = async () => {
+    try {
+      const courses = await client.fetchAllCourses();
+      setAllCourses(courses);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    if (showAllCourses) {
+      fetchAllCourses();
+    }
+  }, [currentUser, showAllCourses]);
 
   // Check if user is faculty
   let isFaculty = false;
@@ -29,40 +56,74 @@ export default function Dashboard() {
     isFaculty = (currentUser as any).role === "FACULTY";
   }
 
-  // Filter enrolled courses
-  const enrolledCourses = courses.filter((course: any) => {
-    if (!currentUser) return false;
-    return enrollments.some(
-      (enrollment: any) =>
-        enrollment.user === (currentUser as any)._id &&
-        enrollment.course === course._id
-    );
-  });
-
   // Determine which courses to display
-  const displayedCourses = showAllCourses ? courses : enrolledCourses;
+  const displayedCourses = showAllCourses ? allCourses : courses;
 
   // Check if user is enrolled in a course
   const isEnrolled = (courseId: string) => {
     if (!currentUser) return false;
-    return enrollments.some(
-      (enrollment: any) =>
-        enrollment.user === (currentUser as any)._id &&
-        enrollment.course === courseId
-    );
+    return courses.some((course: any) => course._id === courseId);
   };
 
   // Handle enroll
-  const handleEnroll = (courseId: string) => {
+  const handleEnroll = async (courseId: string) => {
     if (currentUser) {
-      dispatch(enrollUser({ userId: (currentUser as any)._id, courseId }));
+      try {
+        await client.enrollInCourse(courseId);
+        // Refresh courses to get updated enrollment
+        await fetchCourses();
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
   // Handle unenroll
-  const handleUnenroll = (courseId: string) => {
+  const handleUnenroll = async (courseId: string) => {
     if (currentUser) {
-      dispatch(unenrollUser({ userId: (currentUser as any)._id, courseId }));
+      try {
+        await client.unenrollFromCourse(courseId);
+        // Refresh courses to get updated enrollment
+        await fetchCourses();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  // Add new course
+  const onAddNewCourse = async () => {
+    try {
+      const newCourse = await client.createCourse(course);
+      dispatch(setCourses([...courses, newCourse]));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Update course
+  const onUpdateCourse = async () => {
+    try {
+      await client.updateCourse(course);
+      dispatch(setCourses(courses.map((c) => {
+        if (c._id === course._id) {
+          return course;
+        } else {
+          return c;
+        }
+      })));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Delete course
+  const onDeleteCourse = async (courseId: string) => {
+    try {
+      await client.deleteCourse(courseId);
+      dispatch(setCourses(courses.filter((course) => course._id !== courseId)));
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -75,10 +136,10 @@ export default function Dashboard() {
           <h5>New Course
               <button className="btn btn-primary float-end"
                       id="wd-add-new-course-click"
-                      onClick={() => dispatch(addNewCourse(course))} > Add </button>
+                      onClick={onAddNewCourse} > Add </button>
           </h5><hr />
           <button className="btn btn-warning float-end me-2"
-                    onClick={() => dispatch(updateCourse(course))} id="wd-update-course-click">
+                    onClick={onUpdateCourse} id="wd-update-course-click">
               Update </button>
           
           <FormControl value={course.name} className="mb-2"
@@ -150,7 +211,7 @@ export default function Dashboard() {
                       <>
                         <button onClick={(event) => {
                           event.preventDefault();
-                          dispatch(deleteCourse(course._id));
+                          onDeleteCourse(course._id);
                         }} className="btn btn-danger float-end"
                         id="wd-delete-course-click">
                           Delete

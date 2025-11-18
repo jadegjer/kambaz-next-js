@@ -3,9 +3,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../../../store";
-import { addAssignment, updateAssignment } from "../reducer";
+import { setAssignments } from "../reducer";
 import { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
+import * as coursesClient from "../../../client";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
@@ -33,11 +34,18 @@ export default function AssignmentEditor() {
     }
   }, [aid, existingAssignment, isNew]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isNew) {
-      dispatch(addAssignment(assignment));
+      const newAssignment = await coursesClient.createAssignmentForCourse(
+        cid as string,
+        assignment
+      );
+      dispatch(setAssignments([...assignments, newAssignment]));
     } else {
-      dispatch(updateAssignment(assignment));
+      await coursesClient.updateAssignment(assignment);
+      dispatch(setAssignments(
+        assignments.map((a: any) => (a._id === assignment._id ? assignment : a))
+      ));
     }
     router.push(`/Courses/${cid}/Assignments`);
   };

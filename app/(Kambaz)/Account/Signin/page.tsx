@@ -1,31 +1,44 @@
 "use client";
 import Link from "next/link";
-import { redirect } from "next/dist/client/components/navigation";
+import { useRouter } from "next/navigation";
 import { setCurrentUser } from "../reducer";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
-import * as db from "../../Database";
 import { FormControl, Button } from "react-bootstrap";
+import * as client from "../client";
 
 export default function Signin() {
   const [credentials, setCredentials] = useState<any>({});
+  const [error, setError] = useState("");
   const dispatch = useDispatch();
+  const router = useRouter();
   
-  const signin = () => {
-    const user = db.users.find(
-      (u: any) =>
-        u.username === credentials.username &&
-        u.password === credentials.password
-    );
-    if (!user) return;
-    dispatch(setCurrentUser(user));
-    redirect("/Dashboard");
+  const signin = async () => {
+    try {
+      console.log("Attempting signin with:", credentials);
+      const user = await client.signin(credentials);
+      console.log("Signin successful, user:", user);
+      if (!user) {
+        setError("Login failed");
+        return;
+      }
+      dispatch(setCurrentUser(user));
+      router.push("/Dashboard");
+    } catch (err: any) {
+      console.error("Signin error:", err);
+      setError(err.response?.data?.message || "Login failed");
+    }
   };
 
   return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
       <div style={{ width: "400px" }}>
         <h1 className="mb-4">Signin</h1>
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
         <FormControl 
           value={credentials.username || ""}
           onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
