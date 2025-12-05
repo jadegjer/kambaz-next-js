@@ -23,6 +23,19 @@ export default function AccountNavigation() {
           </NavLink>
         </NavItem>
       ))}
+      
+      {/* Add Users link for ADMIN users only */}
+      {currentUser && (currentUser as any).role === "ADMIN" && (
+        <NavItem>
+          <NavLink 
+            as={Link} 
+            href={`/Account/Users`} 
+            active={pathname.endsWith('Users')}
+          >
+            Users
+          </NavLink>
+        </NavItem>
+      )}
     </Nav>
   );
 }
